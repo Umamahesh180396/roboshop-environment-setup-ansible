@@ -55,12 +55,10 @@
       copy:
         src: dispatch.service
         dest: /etc/systemd/system/dispatch.service
-
+    
     - name: Load, Start and Enable service
       service:
         name: dispatch
-        state: "{{ item }}"
+        state: started
         enabled: yes
-      loop:
-        - reloaded
-        - started
+        daemon_reload: true
