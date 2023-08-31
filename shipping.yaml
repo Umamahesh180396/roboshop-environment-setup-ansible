@@ -1,0 +1,69 @@
+- name: Playbook for Shipping service
+  hosts: shipping
+  become: yes
+
+  tasks:
+    - name: Install maven and mysql client
+      yum:
+        name:
+          - maven
+          - mysql
+        state: present
+    
+    - name: Check roboshop user exists
+      shell: id roboshop
+      register: status
+      ignore_errors: true
+
+    - name: Create roboshop user if not exists
+      user:
+        name: roboshop
+        state: present
+      when: status.rc != 0
+
+    - name: Check if /app directoy exist
+      stat:
+        path: /app
+      register: status
+      
+    - name: Create /app directoy if not exists
+      file:
+        path: /app
+        state: directory
+      when: not status.stat.exists
+
+    - name: Download the application code to created app directory
+      unarchive:
+        src: https://roboshop-builds.s3.amazonaws.com/shipping.zip
+        dest: /app
+        remote_src: yes
+    
+    - name: Download maven dependencies and build application
+      shell:
+        cmd:
+          - mvn clean package
+          - mv target/shipping-1.0.jar shipping.jar
+      args:
+        chdir: /app
+
+    - name: Setup SystemD Shipping Service
+      copy:
+        src: shipping.service
+        dest: /etc/systemd/system/shipping.service
+    
+    - name: Load, Start and Enable shipping service
+      service:
+        name: shipping
+        state: "{{ item }}"
+        enabled: yes
+      loop:
+        - reloaded
+        - started
+    - name: Load Schema
+      shell: mysql -h <MYSQL-SERVER-IPADDRESS> -uroot -pRoboShop@1 < /app/schema/shipping.sql 
+
+    - name: Restart shipping to reflect schema changes
+      service:
+        name: shipping
+        state: restarted 
+    
