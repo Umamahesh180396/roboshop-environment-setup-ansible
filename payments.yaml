@@ -1,0 +1,59 @@
+- name: Playbook for Payments service
+  hosts: payments
+  become: yes
+
+  tasks:
+    - name: Install Python 3.6
+      yum:
+        name:
+          - python36
+          - gcc
+          - python3-devel
+
+    - name: Check roboshop user exists
+      shell: id roboshop
+      register: status
+      ignore_errors: true
+
+    - name: Create roboshop user if not exists
+      user:
+        name: roboshop
+        state: present
+      when: status.rc != 0
+
+    - name: Check if /app directoy exist
+      stat:
+        path: /app
+      register: status
+      
+    - name: Create /app directoy if not exists
+      file:
+        path: /app
+        state: directory
+      when: not status.stat.exists
+
+    - name: Download the application code to created app directory
+      unarchive:
+        src: https://roboshop-builds.s3.amazonaws.com/payments.zip
+        dest: /app
+        remote_src: yes
+    
+    - name: Download python dependencies
+      shell: pip3.6 install -r requirements.txt
+      args:
+        chdir: /app
+
+    - name: Setup SystemD Payment Service
+      copy:
+        src: payment.service
+        dest: /etc/systemd/system/payment.service
+
+    - name: Load, Start and Enable service
+      service:
+        name: payment
+        state: "{{ item }}"
+        enabled: yes
+      loop:
+        - reloaded
+        - started
+    
