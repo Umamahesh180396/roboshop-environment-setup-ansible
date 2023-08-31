@@ -1,0 +1,60 @@
+- name: Playbook for dispatch service
+  hosts: dispatch
+  become: yes
+
+  tasks:
+    - name: Install GoLang
+      yum:
+        name: golang
+        state: present
+    
+    - name: Check roboshop user exists
+      shell: id roboshop
+      register: status
+      ignore_errors: true
+
+    - name: Create roboshop user if not exists
+      user:
+        name: roboshop
+        state: present
+      when: status.rc != 0
+
+    - name: Check if /app directoy exist
+      stat:
+        path: /app
+      register: status
+      
+    - name: Create /app directoy if not exists
+      file:
+        path: /app
+        state: directory
+      when: not status.stat.exists
+
+    - name: Download the application code to created app directory
+      unarchive:
+        src: https://roboshop-builds.s3.amazonaws.com/dispatch.zip
+        dest: /app
+        remote_src: yes
+    
+    - name: Download goland dependencies and build
+      shell:
+        cmd:
+          - go mod init dispatch
+          - go get
+          - go build
+      args:
+        chdir: /app
+
+    - name: Setup SystemD Dispatch Service
+      copy:
+        src: dispatch.service
+        dest: /etc/systemd/system/dispatch.service
+
+    - name: Load, Start and Enable service
+      service:
+        name: dispatch
+        state: "{{ item }}"
+        enabled: yes
+      loop:
+        - reloaded
+        - started
