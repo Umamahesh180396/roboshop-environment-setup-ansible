@@ -69,4 +69,4 @@
         state: present
     
     - name: Load schema
-      shell: mongo --host 172.31.91.40 < /app/schema/catalogue.js
+      shell: mongo --host mongodb.robomart.cloud < /app/schema/catalogue.js

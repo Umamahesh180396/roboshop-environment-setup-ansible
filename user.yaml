@@ -69,4 +69,4 @@
         state: present
     
     - name: Load schema
-      shell: mongo --host MONGODB-SERVER-IPADDRESS < /app/schema/user.js
+      shell: mongo --host mongodb.robomart.cloud < /app/schema/user.js
