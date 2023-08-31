@@ -39,7 +39,7 @@
         remote_src: yes
     
     - name: Download maven dependencies and build application
-      command: "{{ item }}""
+      command: "{{ item }}"
       args:
         chdir: /app
       with_items:
