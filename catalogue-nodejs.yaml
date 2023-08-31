@@ -1,5 +1,5 @@
 - name: Playbook for installing Catalogue nodejs service
-  hosts: Catalogue
+  hosts: catalogue
   become: yes
 
   tasks:
