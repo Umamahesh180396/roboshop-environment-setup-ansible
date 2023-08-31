@@ -1,0 +1,71 @@
+- name: Playbook for installing Catalogue nodejs service
+  hosts: Catalogue
+  become: yes
+
+  tasks:
+    - name: Setup nodejs repos
+      shell: curl -sL https://rpm.nodesource.com/setup_lts.x | bash
+
+    - name: Install NodeJS
+      yum:
+        name: nodejs
+        state: present
+    
+    - name: Check roboshop user exists
+      shell: id roboshop
+      register: status
+
+    - name: Create roboshop user if not exists
+      user:
+        name: roboshop
+        state: present
+      when: status.rc != 0
+
+    - name: Check if /app directoy exist
+      stat:
+        path: /app
+      register: status
+      
+    - name: Create /app directoy if not exists
+      file:
+        path: /app
+        state: present
+      when: not status.stat.exists
+    
+    - name: Download the application code to created app directory
+      unarchive:
+        src: https://roboshop-builds.s3.amazonaws.com/catalogue.zip
+        dest: /app
+        remote_src: yes
+    
+    - name: Download npm dependencies
+      shell: npm install
+      args:
+        chdir: /app
+    
+    - name: Setup SystemD Catalogue service
+      file:
+        src: catalogue.service
+        dest: /etc/systemd/system/catalogue.service
+    
+    - name: Reload, enable and start catalogue.service
+      service:
+        name: catalogue
+        state: {{items}}
+        enabled: yes
+      loop:
+        - reloaded
+        - started
+    
+    - name: Setup mongodb repo
+      copy:
+        src: mongo.repo
+        dest: /etc/yum.repos.d/mongo.repo
+    
+    - name: Install mongodb-client
+      yum:
+        name: mongodb-org-shell
+        state: present
+    
+    - name: Load schema
+      shell: mongo --host 172.31.91.40 < /app/schema/catalogue.js
