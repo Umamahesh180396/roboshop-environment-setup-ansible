@@ -21,7 +21,7 @@
         enabled: yes
     
     - name: Set password and permissions for rabbitmq
-      shell:
-        cmd:
-          - rabbitmqctl add_user roboshop roboshop123
-          - rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*"
+      command: "{{ item }}"
+      with_items:
+        - rabbitmqctl add_user roboshop roboshop123
+        - rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*"
