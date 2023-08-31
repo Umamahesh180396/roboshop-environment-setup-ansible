@@ -44,6 +44,7 @@
         - go mod init dispatch
         - go get
         - go build
+      ignore_errors: true
 
     - name: Setup SystemD Dispatch Service
       copy:
