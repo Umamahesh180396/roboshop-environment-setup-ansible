@@ -37,13 +37,13 @@
         remote_src: yes
     
     - name: Download goland dependencies and build
-      shell:
-        cmd:
-          - go mod init dispatch
-          - go get
-          - go build
+      command: "{{ item }}"
       args:
         chdir: /app
+      with_items:
+        - go mod init dispatch
+        - go get
+        - go build
 
     - name: Setup SystemD Dispatch Service
       copy:
