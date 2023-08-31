@@ -1,0 +1,59 @@
+- name: Playbook for Cart service
+  hosts: cart
+  become: yes
+
+  tasks:
+    - name: Setup NodeJS repos
+      shell: curl -sL https://rpm.nodesource.com/setup_lts.x | bash
+
+    - name: Install NodeJS
+      yum:
+        name: nodejs
+        state: present
+    
+    - name: Check roboshop user exists
+      shell: id roboshop
+      register: status
+      ignore_errors: true
+
+    - name: Create roboshop user if not exists
+      user:
+        name: roboshop
+        state: present
+      when: status.rc != 0
+
+    - name: Check if /app directoy exist
+      stat:
+        path: /app
+      register: status
+      
+    - name: Create /app directoy if not exists
+      file:
+        path: /app
+        state: directory
+      when: not status.stat.exists
+
+    - name: Download the application code to created app directory
+      unarchive:
+        src: https://roboshop-builds.s3.amazonaws.com/cart.zip
+        dest: /app
+        remote_src: yes
+    
+    - name: Download npm dependencies
+      shell: npm install
+      args:
+        chdir: /app
+    
+    - name: Setup SystemD User Service
+      copy:
+        src: cart.service
+        dest: /etc/systemd/system/cart.service
+    
+    - name: Load, Start and Enable cart service
+      service:
+        name: cart
+        state: "{{ item }}"
+        enabled: yes
+      loop:
+        - reloaded
+        - started
