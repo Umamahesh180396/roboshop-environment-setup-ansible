@@ -39,11 +39,12 @@
         remote_src: yes
     
     - name: Download maven dependencies and build application
-      shell:
-        cmd:
-          - mvn clean package
-          - mv target/shipping-1.0.jar shipping.jar
+      command: "{{ item }}""
+      args:
         chdir: /app
+      with_items:
+        - mvn clean package
+        - mv target/shipping-1.0.jar shipping.jar
 
     - name: Setup SystemD Shipping Service
       copy:
