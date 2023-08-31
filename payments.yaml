@@ -34,7 +34,7 @@
 
     - name: Download the application code to created app directory
       unarchive:
-        src: https://roboshop-builds.s3.amazonaws.com/payments.zip
+        src: https://roboshop-artifacts.s3.amazonaws.com/payment.zip
         dest: /app
         remote_src: yes
     
