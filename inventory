@@ -13,3 +13,13 @@
 [user]
 
 [cart]
+
+[mysql]
+
+[shipping]
+
+[rabbitmq]
+
+[payments]
+
+[dispatch]
