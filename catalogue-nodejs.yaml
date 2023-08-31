@@ -30,7 +30,7 @@
     - name: Create /app directoy if not exists
       file:
         path: /app
-        state: present
+        state: directory
       when: not status.stat.exists
     
     - name: Download the application code to created app directory
