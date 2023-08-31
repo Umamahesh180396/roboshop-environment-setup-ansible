@@ -36,6 +36,11 @@
         dest: /app
         remote_src: yes
     
+    - name: Delete if go.mod exists in /app
+      file:
+        path: /app/go.mod
+        state: absent
+    
     - name: Download goland dependencies and build
       command: "{{ item }}"
       args:
