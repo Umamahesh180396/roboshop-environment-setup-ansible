@@ -52,7 +52,7 @@
     - name: Reload, enable and start catalogue.service
       service:
         name: catalogue
-        state: "{{ items }}"
+        state: "{{ item }}"
         enabled: yes
       loop:
         - reloaded
